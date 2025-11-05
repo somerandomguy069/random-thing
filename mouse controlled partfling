@@ -1,4 +1,4 @@
--- Services
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Settings
+
 local MAX_DISTANCE = 2000
 local RADIUS = 10
 local ROTATION_SPEED = 10
@@ -18,10 +18,10 @@ local RADIUS_STEP = 2
 local SPEED_STEP = 2
 local ATTRACTION_STEP = 200
 
--- Toggle
+
 local isToggled = false
 
--- Collect unanchored parts
+
 local parts = {}
 
 local function addPart(p)
@@ -39,7 +39,7 @@ local function removePart(p)
     end
 end
 
--- Initialize
+
 for _, p in pairs(Workspace:GetDescendants()) do
     addPart(p)
 end
@@ -47,7 +47,7 @@ end
 Workspace.DescendantAdded:Connect(addPart)
 Workspace.DescendantRemoving:Connect(removePart)
 
--- GUI Setup
+
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpinControlGUI"
 screenGui.ResetOnSpawn = false
@@ -70,7 +70,7 @@ local function createLabel(name, pos)
     return label
 end
 
--- Top-middle positioning
+
 local startX = 0.5 -- center horizontally
 local startY = 0   -- top of screen
 
@@ -88,18 +88,18 @@ end
 
 updateGUI()
 
--- Keybinds
+ --keybinds typeshit
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     local key = input.KeyCode
 
-    -- Toggle spin
+
     if key == Enum.KeyCode.R then
         isToggled = not isToggled
         updateGUI()
     end
 
-    -- Radius
+
     if key == Enum.KeyCode.F then
         RADIUS = RADIUS + RADIUS_STEP
         updateGUI()
@@ -108,7 +108,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
         updateGUI()
     end
 
-    -- Speed
+
     if key == Enum.KeyCode.Z then
         ROTATION_SPEED = ROTATION_SPEED + SPEED_STEP
         updateGUI()
@@ -117,7 +117,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
         updateGUI()
     end
 
-    -- Attraction
+
     if key == Enum.KeyCode.C then
         ATTRACTION = ATTRACTION + ATTRACTION_STEP
         updateGUI()
@@ -127,7 +127,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- Spin loop
+
 local angle = 0
 RunService.Heartbeat:Connect(function(dt)
     if not isToggled then return end
@@ -155,3 +155,4 @@ RunService.Heartbeat:Connect(function(dt)
         end
     end
 end)
+
