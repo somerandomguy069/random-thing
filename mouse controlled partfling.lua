@@ -51,7 +51,7 @@ Workspace.DescendantRemoving:Connect(removePart)
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SpinControlGUI"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- render above chat
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 screenGui.Parent = PlayerGui
 
 local function createLabel(name, pos)
@@ -71,8 +71,8 @@ local function createLabel(name, pos)
 end
 
 
-local startX = 0.5 -- center horizontally
-local startY = 0   -- top of screen
+local startX = 0.5 
+local startY = 0  
 
 local radiusLabel = createLabel("Radius", UDim2.new(startX, -100, startY, 10))
 local speedLabel = createLabel("Speed", UDim2.new(startX, -100, startY, 50))
@@ -155,4 +155,5 @@ RunService.Heartbeat:Connect(function(dt)
         end
     end
 end)
+
 
