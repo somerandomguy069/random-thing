@@ -1,0 +1,157 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Settings
+local MAX_DISTANCE = 2000
+local RADIUS = 10
+local ROTATION_SPEED = 10
+local ATTRACTION = 1000
+
+local RADIUS_STEP = 2
+local SPEED_STEP = 2
+local ATTRACTION_STEP = 200
+
+-- Toggle
+local isToggled = false
+
+-- Collect unanchored parts
+local parts = {}
+
+local function addPart(p)
+    if p:IsA("BasePart") and not p.Anchored and p.Parent ~= LocalPlayer.Character then
+        table.insert(parts, p)
+    end
+end
+
+local function removePart(p)
+    for i = #parts, 1, -1 do
+        if parts[i] == p then
+            table.remove(parts, i)
+            break
+        end
+    end
+end
+
+-- Initialize
+for _, p in pairs(Workspace:GetDescendants()) do
+    addPart(p)
+end
+
+Workspace.DescendantAdded:Connect(addPart)
+Workspace.DescendantRemoving:Connect(removePart)
+
+-- GUI Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SpinControlGUI"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- render above chat
+screenGui.Parent = PlayerGui
+
+local function createLabel(name, pos)
+    local label = Instance.new("TextLabel")
+    label.Name = name
+    label.Size = UDim2.new(0, 200, 0, 30)
+    label.Position = pos
+    label.BackgroundTransparency = 0.5
+    label.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.TextScaled = true
+    label.Font = Enum.Font.SourceSansBold
+    label.ZIndex = 10
+    label.Text = name .. ": 0"
+    label.Parent = screenGui
+    return label
+end
+
+-- Top-middle positioning
+local startX = 0.5 -- center horizontally
+local startY = 0   -- top of screen
+
+local radiusLabel = createLabel("Radius", UDim2.new(startX, -100, startY, 10))
+local speedLabel = createLabel("Speed", UDim2.new(startX, -100, startY, 50))
+local attractionLabel = createLabel("Attraction", UDim2.new(startX, -100, startY, 90))
+local toggleLabel = createLabel("Status", UDim2.new(startX, -100, startY, 130))
+
+local function updateGUI()
+    radiusLabel.Text = "Radius: "..math.floor(RADIUS)
+    speedLabel.Text = "Speed: "..math.floor(ROTATION_SPEED)
+    attractionLabel.Text = "Attraction: "..math.floor(ATTRACTION)
+    toggleLabel.Text = "Status: "..(isToggled and "ON" or "OFF")
+end
+
+updateGUI()
+
+-- Keybinds
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    local key = input.KeyCode
+
+    -- Toggle spin
+    if key == Enum.KeyCode.R then
+        isToggled = not isToggled
+        updateGUI()
+    end
+
+    -- Radius
+    if key == Enum.KeyCode.F then
+        RADIUS = RADIUS + RADIUS_STEP
+        updateGUI()
+    elseif key == Enum.KeyCode.G then
+        RADIUS = math.max(1,RADIUS-RADIUS_STEP)
+        updateGUI()
+    end
+
+    -- Speed
+    if key == Enum.KeyCode.Z then
+        ROTATION_SPEED = ROTATION_SPEED + SPEED_STEP
+        updateGUI()
+    elseif key == Enum.KeyCode.X then
+        ROTATION_SPEED = math.max(1,ROTATION_SPEED-SPEED_STEP)
+        updateGUI()
+    end
+
+    -- Attraction
+    if key == Enum.KeyCode.C then
+        ATTRACTION = ATTRACTION + ATTRACTION_STEP
+        updateGUI()
+    elseif key == Enum.KeyCode.V then
+        ATTRACTION = math.max(100,ATTRACTION-ATTRACTION_STEP)
+        updateGUI()
+    end
+end)
+
+-- Spin loop
+local angle = 0
+RunService.Heartbeat:Connect(function(dt)
+    if not isToggled then return end
+
+    angle = angle + ROTATION_SPEED * dt
+
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local mousePos = Mouse.Hit.Position
+
+    for _, part in pairs(parts) do
+        if part.Parent and not part.Anchored then
+            local distance = (part.Position - hrp.Position).Magnitude
+            if distance <= MAX_DISTANCE then
+                local dx = math.cos(angle) * RADIUS
+                local dz = math.sin(angle) * RADIUS
+                local targetPos = Vector3.new(mousePos.X + dx, mousePos.Y, mousePos.Z + dz)
+
+                local dir = (targetPos - part.Position).Unit
+                part.Velocity = dir * ATTRACTION
+            end
+        end
+    end
+end)
